@@ -1,4 +1,4 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://transform-ai-ipns.onrender.com';
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://transform-ai-final.onrender.com';
 
 export async function checkBackendHealth() {
   try {
