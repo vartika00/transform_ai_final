@@ -17,6 +17,9 @@ RAPIDAPI_URL = os.getenv("RAPIDAPI_URL", "https://open-ai21.p.rapidapi.com/conve
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
+# Google Gemini Cloud Settings
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+
 # Ollama Local Settings
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434").strip()
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b").strip()

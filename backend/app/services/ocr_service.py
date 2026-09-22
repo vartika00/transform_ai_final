@@ -8,6 +8,7 @@ from PIL import Image, ImageOps
 from app.config import (
     OPENAI_API_KEY,
     OPENAI_MODEL,
+    GEMINI_API_KEY,
     OLLAMA_HOST,
     OLLAMA_VISION_MODEL,
     LLM_PROVIDER
@@ -121,57 +122,86 @@ async def _ocr_with_ollama(base64_image: str) -> str:
         data = response.json()
         return data.get("response", "").strip()
 
-def _generate_fallback_ocr_text() -> str:
-    """Graceful fallback if no cloud or local vision engine is available."""
-    return """# Whiteboard Transcription (Local Preview)
-
-## Executive Sprint & Strategy
-- **Objective:** Finalize Edge Compute Engine & Cross-Device Handoff
-- **Target SLA:** Transform voice memo/whiteboard to 4 finished deliverables in <60 seconds
-- **Architecture Decisions:**
-  - Phone (Edge Client): Captures voice, snapshots, and client telemetry
-  - Laptop (Headless Compute): Runs LLM extraction, presentation formatting, and document generation
-  - Shared Clipboard: Immediate synchronicity across connected devices
-
-## Key Deliverables & Action Items
-1. **Frontend PWA:** Finalize responsive capture workflows and studio preview (Assigned: Alex, Deadline: Friday 5 PM)
-2. **Compute Service:** Calibrate python-pptx templates and DOCX generator (Assigned: Priya, Deadline: Monday EOD)
-3. **Core SLA Benchmark:** Verify sub-60s end-to-end processing with 0% hallucination drift
-
-*Note: Live AI Vision engine is offline. Set OPENAI_API_KEY in backend/.env or run `ollama run llama3.2-vision` for live dynamic handwriting OCR.*"""
+async def _ocr_with_gemini(base64_image: str) -> str:
+    """Perform whiteboard OCR using Google Gemini Vision (gemini-1.5-flash) via REST."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": WHITEBOARD_SYSTEM_PROMPT + "\n\nTranscribe all handwriting, text, and diagrams from this whiteboard image into structured Markdown:"},
+                    {
+                        "inline_data": {
+                            "mime_type": "image/jpeg",
+                            "data": base64_image
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+    async with httpx.AsyncClient(timeout=45.0) as client:
+        response = await client.post(url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        candidates = data.get("candidates", [])
+        if candidates and "content" in candidates[0]:
+            parts = candidates[0]["content"].get("parts", [])
+            if parts and "text" in parts[0]:
+                return parts[0]["text"].strip()
+        return ""
 
 async def extract_whiteboard_text(image_bytes: bytes) -> Dict[str, Any]:
     """
     Main orchestrator:
     1. Preprocesses and optimizes image (EXIF orientation, downscaling, compression)
-    2. Routes to OpenAI Vision if configured
-    3. Routes to Ollama Vision if local engine is running
-    4. Falls back gracefully with preview structure
+    2. Routes to OpenAI Vision if configured and active
+    3. Routes to Google Gemini Vision if configured
+    4. Routes to Ollama Vision if local engine is running
+    5. If all cloud vision engines fail or are unconfigured, returns success=False
+       so the client immediately triggers on-device real-time Tesseract OCR without dummy data.
     """
     try:
         base64_image = preprocess_and_encode_image(image_bytes)
     except Exception as img_err:
         raise ValueError(f"Invalid image format or corrupted file: {str(img_err)}")
 
-    # 1. Try OpenAI Vision (always use for images if key exists, since RapidAPI is text-only)
+    # 1. Try OpenAI Vision (if key configured)
     if OPENAI_API_KEY:
         try:
             text = await _ocr_with_openai(base64_image)
             if text:
                 return {
+                    "success": True,
                     "text": text,
                     "provider": "openai_vision",
                     "model": OPENAI_MODEL
                 }
         except Exception as e:
-            print(f"[OCR] OpenAI Vision attempt failed: {e}")
+            print(f"[OCR] OpenAI Vision attempt failed (quota exhausted or network error): {e}")
 
-    # 2. Try Ollama Vision
+    # 2. Try Google Gemini Vision (if key configured)
+    if GEMINI_API_KEY:
+        try:
+            text = await _ocr_with_gemini(base64_image)
+            if text:
+
+                return {
+                    "success": True,
+                    "text": text,
+                    "provider": "gemini_vision",
+                    "model": "gemini-1.5-flash"
+                }
+        except Exception as e:
+            print(f"[OCR] Gemini Vision attempt failed: {e}")
+
+    # 3. Try Ollama Vision
     if LLM_PROVIDER in ["auto", "ollama"]:
         try:
             text = await _ocr_with_ollama(base64_image)
             if text:
                 return {
+                    "success": True,
                     "text": text,
                     "provider": "ollama_vision",
                     "model": OLLAMA_VISION_MODEL
@@ -179,10 +209,11 @@ async def extract_whiteboard_text(image_bytes: bytes) -> Dict[str, Any]:
         except Exception as e:
             print(f"[OCR] Ollama Vision attempt failed: {e}")
 
-    # 3. Graceful fallback
-    print("[OCR] Falling back to offline structured whiteboard transcription")
+    # 4. No cloud vision engine active / available
+    print("[OCR] Cloud Vision engines unavailable. Returning status to client for on-device real-time OCR.")
     return {
-        "text": _generate_fallback_ocr_text(),
-        "provider": "heuristic_fallback",
-        "model": "offline_preset"
+        "success": False,
+        "text": "",
+        "provider": "none",
+        "error": "Cloud Vision AI unavailable (OpenAI/Gemini quota exhausted or unconfigured). Running on-device OCR."
     }

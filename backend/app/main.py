@@ -395,6 +395,13 @@ async def scan_whiteboard(file: UploadFile = File(...)):
 
     try:
         result = await extract_whiteboard_text(contents)
+        if not result.get("success", False) or not result.get("text"):
+            return {
+                "success": False,
+                "text": "",
+                "provider": result.get("provider", "none"),
+                "error": result.get("error", "Cloud Vision engines unavailable")
+            }
         return {
             "success": True,
             "text": result.get("text", ""),
