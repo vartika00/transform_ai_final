@@ -31,12 +31,16 @@ from app.services.db_service import (
     init_db, save_transformation_to_db, get_all_history,
     get_history_by_id, delete_history_by_id
 )
+import io
 from app.services.pdf_service import create_executive_pdf
 from app.services.ocr_service import extract_whiteboard_text
 from app.prompts.exec_summary import EXEC_SUMMARY_PROMPT
 from app.prompts.presentation import PRESENTATION_PROMPT
 from app.prompts.linkedin import LINKEDIN_PROMPT
 from app.prompts.twitter import TWITTER_PROMPT
+from app.prompts.video_package import VIDEO_PACKAGE_PROMPT
+from app.prompts.advisory import ADVISORY_PROMPT
+from app.prompts.infographic import INFOGRAPHIC_PROMPT
 
 app = FastAPI(
     title="TransformAI Compute Engine",
@@ -60,6 +64,49 @@ app.add_middleware(
 
 SAMPLE_TEMPLATES = [
     {
+        "id": "threat_intel",
+        "title": "Threat Intelligence Advisory: APT-44 Zero-Day",
+        "category": "Threat Intel & Advisory",
+        "text": """URGENT THREAT ADVISORY | REF: SEC-2026-X801
+Active exploitation detected targeting edge API gateway authentication tokens across distributed microservices.
+Vector: Unauthenticated remote parameter manipulation in legacy cryptographic session negotiation.
+Affected systems: Production API ingress clusters, customer SSO relay proxies (estimated 18,000 active sessions).
+Severity: CRITICAL (CVSS 9.4).
+Observed impact: Token replay attacks observed in 3 regional zones (EU-Central, AP-South, US-East). Zero unauthorized DB exfiltration verified to date.
+Prescribed Remediation Actions:
+1. Security Operations (Alex): Revoke all active bearer session tokens generated prior to 04:00 UTC immediately.
+2. Infrastructure Lead (Elena): Deploy patched gateway firewall ruleset v2.4.1 to all ingress proxies by 11:00 AM EOD.
+3. Compliance & Legal (Priya): Prepare mandatory regulatory incident disclosure notice for enterprise clients within 24 hours.
+Verification: Enforce strict token rotation validation with zero service degradation."""
+    },
+    {
+        "id": "incident_report",
+        "title": "Enterprise Cloud Outage Post-Mortem",
+        "category": "Incident Report",
+        "text": """INCIDENT POST-MORTEM REPORT: P0 DATABASE CLUSTER FAILOVER
+Timestamp: Yesterday 14:22 UTC to 15:08 UTC (Total outage duration: 46 minutes).
+Incident Summary: A cascading connection pool saturation in the primary PostgreSQL cluster caused transaction deadlocks, leading to 503 gateway timeouts for 24% of concurrent enterprise users.
+Root Cause Analysis: Unoptimized analytical bulk query triggered during peak transaction hours by automated reporting pipeline without read-replica routing.
+Financial & SLA Impact: 99.78% monthly availability SLA breached; estimated SLA credits payable: $42,000 across Tier-1 enterprise accounts.
+Remediation Milestones:
+1. Database Team (Vikram): Implement automated connection circuit-breakers and hard query timeout caps (max 5 seconds) by Friday.
+2. Platform Squad (Marcus): Migrate all background analytical queries strictly to read-replicas by Tuesday 18:00 UTC.
+3. Support Ops (Sarah): Issue root-cause summary briefings to all impacted enterprise customers by tomorrow morning 10 AM."""
+    },
+    {
+        "id": "policy_governance",
+        "title": "Enterprise AI Governance Policy 2026",
+        "category": "Policy & Governance",
+        "text": """EXECUTIVE POLICY BRIEFING: RESPONSIBLE GENERATIVE AI GOVERNANCE
+Scope: All enterprise workforce units, contractors, and third-party automated compute pipelines.
+Objective: Establish strict operational guardrails ensuring 100% data residency, zero prompt leakage to public LLM providers, and full provenance citation tracking across all synthesized deliverables.
+Key Mandates:
+1. Edge-First Deployment: Sensitive client communications must be processed via local compute microservices or private sovereign API nodes (e.g. NVIDIA NIM / private enclave).
+2. Hallucination Safeguards: All generated deliverables must anchor claims to a verifiable Intent Context Object (ICO) with direct sentence citations.
+3. Review Accountability: Final sign-off required by designated department owner prior to external publication.
+Implementation Deadline: Q3 Sprint 2 across all operational divisions."""
+    },
+    {
         "id": "strategy_sync",
         "title": "Product Strategy All-Hands",
         "category": "Strategy",
@@ -70,31 +117,6 @@ Metrics to hit: Under 60 seconds end-to-end transformation time, 0% hallucinatio
 Alex to finalize the PWA service worker by Friday 5 PM. 
 Priya to calibrate python-pptx widescreen templates and Office Kit clipboard sync by Monday EOD. 
 Leadership review scheduled for next Tuesday with VP of Product."""
-    },
-    {
-        "id": "whiteboard_sprint",
-        "title": "Q3 Growth Architecture Whiteboard",
-        "category": "Whiteboard OCR",
-        "text": """[WHITEBOARD SNAPSHOT - OCR TRANSCRIBED]
-Objective: Scale user engagement across 12 product markets.
-- Retention benchmark: Lift 30-day active retention from 42% to 58% by end of Q3.
-- Core bottleneck: Complex onboarding and manual cross-device handoffs.
-- Solution: Leverage shared clipboard and instant drag-and-drop file transfer.
-- Action items:
-  1. Frontend Team (David): Implement continuous speech-to-text with interim visualizer. Deadline: Nov 15.
-  2. Core Engine (Sarah): Benchmark Llama-3.2-3B vs Qwen-2.5-7B latency. Deadline: Nov 18.
-  3. Design (Michael): Polish mobile cyber dark aesthetic and slide carousel. Deadline: Nov 20.
-Projected Impact: 3.4x faster deliverable turnaround."""
-    },
-    {
-        "id": "voice_memo",
-        "title": "Field Memo: Executive Client Debrief",
-        "category": "Voice Memo",
-        "text": """Quick voice memo from the offsite meeting in Singapore. The client loved our cross-device demonstration. 
-Their biggest takeaway was the 'Honest Split'—how the phone processes speech and OCR locally, while the headless laptop churns out PowerPoint decks and executive summaries silently with the lid shut. 
-They want a pilot deployment with 250 enterprise seats by next month. 
-Our target conversion rate is 85%. 
-Action items: Send customized executive summary and slide deck by tomorrow morning 10 AM. Team Lead to coordinate commercial proposal by Thursday. Key metrics: 99.8% uptime and enterprise SSO support."""
     }
 ]
 
@@ -178,21 +200,35 @@ async def transform_raw_text(
 
         # Step 2: Parallel Multi-Format Generation
         tasks = {}
+        ctrl_instructions = f"\nOutput Language: {req.language}. Tone: {req.tone}. Target Audience: {req.audience}. Detail Level: {req.level_of_detail}. Communication Objective: {req.objective}. Content Style: {req.content_style}."
+
         if "executive_summary" in req.formats:
             tasks["executive_summary"] = generate_llm_response(
-                EXEC_SUMMARY_PROMPT.replace("{ico_json}", ico_str)
+                EXEC_SUMMARY_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
             )
         if "linkedin" in req.formats:
             tasks["linkedin"] = generate_llm_response(
-                LINKEDIN_PROMPT.replace("{ico_json}", ico_str)
+                LINKEDIN_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
             )
         if "twitter" in req.formats:
             tasks["twitter"] = generate_llm_response(
-                TWITTER_PROMPT.replace("{ico_json}", ico_str)
+                TWITTER_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
             )
         if "presentation" in req.formats:
             tasks["presentation"] = generate_llm_response(
-                PRESENTATION_PROMPT.replace("{ico_json}", ico_str)
+                PRESENTATION_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
+            )
+        if "video_package" in req.formats or "video" in req.formats:
+            tasks["video_package"] = generate_llm_response(
+                VIDEO_PACKAGE_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
+            )
+        if "advisory" in req.formats:
+            tasks["advisory"] = generate_llm_response(
+                ADVISORY_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
+            )
+        if "infographic" in req.formats:
+            tasks["infographic"] = generate_llm_response(
+                INFOGRAPHIC_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
             )
 
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
@@ -365,17 +401,71 @@ async def regenerate_format(
         "executive_summary": EXEC_SUMMARY_PROMPT,
         "linkedin": LINKEDIN_PROMPT,
         "twitter": TWITTER_PROMPT,
-        "presentation": PRESENTATION_PROMPT
+        "presentation": PRESENTATION_PROMPT,
+        "video_package": VIDEO_PACKAGE_PROMPT,
+        "advisory": ADVISORY_PROMPT,
+        "infographic": INFOGRAPHIC_PROMPT
     }
 
     if format_type not in prompt_map:
         raise HTTPException(status_code=400, detail=f"Unknown format type {format_type}")
 
     prompt = prompt_map[format_type].replace("{ico_json}", ico_str)
-    prompt += f"\nTone adjustment: {req.tone}. Target audience: {req.audience}."
+    prompt += f"\nTone: {req.tone}. Target audience: {req.audience}. Language: {req.language}. Detail: {req.level_of_detail}. Objective: {req.objective}. Style: {req.content_style}."
 
     result = await generate_llm_response(prompt)
     return {"format_type": format_type, "content": result}
+
+@app.post("/api/upload/document")
+async def upload_document(file: UploadFile = File(...)):
+    """
+    Document Parsing Endpoint:
+    Accepts PDF, Word (.docx), Markdown (.md), Text (.txt), or log files,
+    extracts the clean full text, and returns it for the TransformAI pipeline.
+    """
+    filename = file.filename or "uploaded_document"
+    ext = os.path.splitext(filename)[1].lower()
+    content = await file.read()
+    
+    if not content or len(content) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    extracted_text = ""
+    try:
+        if ext == ".pdf":
+            import pypdf
+            reader = pypdf.PdfReader(io.BytesIO(content))
+            pages_text = [page.extract_text() or "" for page in reader.pages]
+            extracted_text = "\n\n".join(pages_text).strip()
+        elif ext in [".docx", ".doc"]:
+            import docx
+            doc = docx.Document(io.BytesIO(content))
+            paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+            extracted_text = "\n\n".join(paragraphs).strip()
+        elif ext in [".txt", ".md", ".json", ".csv", ".log", ".yaml", ".yml"]:
+            try:
+                extracted_text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                extracted_text = content.decode("latin-1", errors="ignore")
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported format '{ext}'. Please upload PDF, Word (.docx), or plain text (.txt / .md) documents."
+            )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse document: {str(e)}")
+
+    if not extracted_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract any readable text from the uploaded document.")
+
+    return {
+        "success": True,
+        "filename": filename,
+        "file_type": ext,
+        "text": extracted_text,
+        "char_count": len(extracted_text),
+        "word_count": len(extracted_text.split())
+    }
 
 @app.post("/api/ocr/whiteboard")
 async def scan_whiteboard(file: UploadFile = File(...)):

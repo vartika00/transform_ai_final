@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Mic, Camera, Keyboard, Sparkles, Clock,
-  Presentation, ChevronRight, Zap
+  Presentation, ChevronRight, Zap, FileText
 } from 'lucide-react';
 import { MagneticDock } from '../components/ui/magnetic-dock';
 
@@ -23,24 +23,24 @@ export default function HomeScreen() {
       const defaultHistory = [
         {
           id: 'hist_1',
-          title: 'Product Strategy All-Hands',
+          title: 'Threat Intelligence Advisory: APT-44 Zero-Day',
           timestamp: '10 mins ago',
-          formatsCount: 4,
-          primaryObjective: 'Align engineering deliverables and hit Q3 launch.'
+          formatsCount: 7,
+          primaryObjective: 'Mitigate active token exploitation in API gateway clusters.'
         },
         {
           id: 'hist_2',
-          title: 'Growth Architecture Whiteboard OCR',
+          title: 'Enterprise Cloud Outage Post-Mortem',
           timestamp: '2 hours ago',
-          formatsCount: 4,
-          primaryObjective: 'Scale retention from 42% to 58%.'
+          formatsCount: 7,
+          primaryObjective: 'Cascade connection pool failover remediation.'
         },
         {
           id: 'hist_3',
-          title: 'Executive Client Debrief (Singapore)',
+          title: 'Product Strategy All-Hands',
           timestamp: 'Yesterday',
-          formatsCount: 3,
-          primaryObjective: 'Enterprise pilot deployment with 250 seats.'
+          formatsCount: 7,
+          primaryObjective: 'One source memo to 7 finished deliverables in <60s.'
         }
       ];
       setRecentTrans(defaultHistory);
@@ -81,7 +81,7 @@ export default function HomeScreen() {
             fontWeight: '500',
             marginBottom: '22px'
           }}>
-            One voice memo → 4 boardroom-ready deliverables in under 60 seconds.
+            One source (voice, doc, photo, notes) → 7 finished deliverables in under 60 seconds.
             Zero prompt engineering. Seamless edge intelligence.
           </p>
 
@@ -127,6 +127,12 @@ export default function HomeScreen() {
                   label: 'Whiteboard OCR',
                   icon: <Camera size={24} color="var(--clay-primary-deep)" />,
                   onClick: () => router.push('/capture?mode=camera')
+                },
+                {
+                  id: 'document',
+                  label: 'Document Ingestion',
+                  icon: <FileText size={24} color="var(--clay-primary-deep)" />,
+                  onClick: () => router.push('/capture?mode=document')
                 },
                 {
                   id: 'text',

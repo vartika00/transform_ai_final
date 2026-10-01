@@ -399,6 +399,184 @@ What are your thoughts on this topic? Let's connect in the comments! 👇
         t4 = f"4/4 🚀 Final Takeaway:\n\nTurn raw capture into polished slides, summaries, and social assets instantly.\n\nBuilt for speed. Powered by iQOO edge compute.\n\n#Productivity #AI #iQOO"
         return f"{t1}\n---\n{t2}\n---\n{t3}\n---\n{t4}"
 
+    elif "Video" in prompt or "video_package" in prompt or "Storyboard" in prompt:
+        return f"""# VIDEO PRODUCTION PACKAGE: {title.upper()}
+
+**Target Duration:** 60 Seconds | **Aspect Ratio:** 16:9 & 9:16 | **Audio Mood:** Focused Tech Ambient
+
+---
+
+## 🎬 Creative Brief & Concept Hook
+- **Core Narrative:** Rapid synthesis of {title} from field capture to operational momentum.
+- **Opening Hook (0:00 - 0:05):** Rapid split-screen of manual 45-minute content churn vs instant 60-second AI deliverable output.
+- **Target Audience:** Cross-functional leadership and operational stakeholders.
+
+---
+
+## 🎞️ Scene-by-Scene Storyboard & Narration
+
+### Scene 1: The Bottleneck & Context (0:00 - 0:12)
+- **Visuals & B-Roll:** Fast-paced overhead shot of messy whiteboards and voice memos. Camera pushes forward into an active mobile dashboard.
+- **On-Screen Text:** "Raw Context ➔ High-Impact Deliverables"
+- **Voiceover Narration:** "Every day, hours are lost translating unstructured meeting notes, voice memos, and field debriefs into clean deliverables. Here is how {title} changes that."
+- **Audio & SFX:** Gentle riser synth followed by a crisp rhythmic bass drop.
+
+### Scene 2: Core Observations (0:12 - 0:30)
+- **Visuals & B-Roll:** Clean kinetic UI showing automatic text extraction and verified Intent Context Object (ICO) structure.
+- **On-Screen Text:** "Verified Factual Fidelity"
+- **Voiceover Narration:** "{overview[:120]}... Every key metric is anchored directly to verified source citations."
+- **Audio & SFX:** Subtle digital chime and data-stream acoustic whoosh.
+
+### Scene 3: Impact & Measurable Targets (0:30 - 0:48)
+- **Visuals & B-Roll:** High-contrast animated chart highlighting target KPIs: {', '.join(metrics[:2]) if metrics else '<60s turnaround'}.
+- **On-Screen Text:** "{metrics[0] if metrics else 'Turnaround Accelerated'}"
+- **Voiceover Narration:** "By decoupling capture from heavy compute, deliverables are rendered in parallel with zero prompt drift."
+- **Audio & SFX:** Driving ambient electronic rhythm.
+
+### Scene 4: Action Matrix & Immediate Next Steps (0:48 - 1:00)
+- **Visuals & B-Roll:** Sleek multi-device workspace view showing executive summary, slides, and advisory synced simultaneously.
+- **On-Screen Text:** "Action Matrix Activated"
+- **Voiceover Narration:** "Ownership is clear, timelines are calibrated, and your team moves directly from alignment to execution."
+- **Audio & SFX:** Dynamic resolving chord.
+
+---
+
+## 📝 Complete Teleprompter / Narration Script
+"Every day, hours are lost translating unstructured meeting notes, voice memos, and field debriefs into clean deliverables. Here is how {title} changes that. {overview[:140]}... Every key metric is anchored directly to verified source citations. By decoupling capture from heavy compute, deliverables are rendered in parallel with zero prompt drift. Ownership is clear, timelines are calibrated, and your team moves directly from alignment to execution."
+
+---
+
+## 💬 Subtitles (SRT / WebVTT Ready)
+1
+00:00:01,000 --> 00:00:05,200
+Every day, hours are lost translating unstructured meeting notes into deliverables.
+
+2
+00:00:05,500 --> 00:00:11,800
+Here is how {title[:40]} transforms that in seconds.
+
+3
+00:00:12,200 --> 00:00:18,500
+{overview[:80]}...
+
+4
+00:00:19,000 --> 00:00:25,000
+Clear ownership, verified timelines, and zero hallucination drift.
+"""
+
+    elif "Advisory" in prompt or "advisory" in prompt or "Threat" in prompt or "Alert" in prompt:
+        return f"""# FORMAL ADVISORY: {title.upper()}
+
+**Advisory ID:** ADV-2026-092 | **Severity Level:** HIGH | **Classification:** TLP:CLEAR / Operational Stakeholders | **Date of Issue:** Current Operating Cycle
+
+---
+
+## ⚠️ 1. Executive Alert & Context
+{overview}
+
+This advisory provides formal notification, operational risk assessment, and prescribed remediation actions regarding the strategic rollout and domain considerations for **{title}**.
+
+---
+
+## 🎯 2. Scope & Affected Stakeholders
+- **Impacted Systems / Domains:** Strategic Planning, Core Infrastructure, and Cross-Platform Integration.
+- **Target Audience:** Executive Leadership, Project Leads, and Operational Stakeholders.
+- **Risk Category:** Operational Continuity & Execution Velocity.
+
+---
+
+## 🔍 3. Key Observations & Findings
+{findings_bullets}
+
+### Quantified Metrics & Baselines:
+""" + "\n".join([f"- **Critical Indicator:** {m}" for m in metrics]) + f"""
+
+---
+
+## 📋 4. Mandatory Action & Remediation Matrix
+
+| Priority | Phase | Responsible Owner | Prescribed Action | Target Deadline | Verification Criterion |
+|:---|:---|:---|:---|:---|:---|
+| **P1** | Immediate (0-24h) | Lead Operational Team | Validate source data fidelity and synchronize deliverable pipelines | Immediate | Full stakeholder sign-off |
+| **P2** | Short-Term (1-7d) | Core Architecture Team | Execute prioritized action items and benchmark system latency | 5 Days | Telemetry verification |
+| **P3** | Long-Term (30d+) | Executive Review | Institutionalize automated pipeline and audit policy alignment | 30 Days | Formal SLA review |
+
+---
+
+## ⚖️ 5. Compliance, Governance & Secondary Impact
+All activities must maintain strict adherence to data governance policies. Verification citations ensure zero hallucination drift from source intelligence.
+
+---
+
+## 📞 6. Escalation Protocol & Contact Information
+- **Lead Steering Unit:** TransformAI Operations Team
+- **Escalation Path:** Direct escalation to Executive Project Lead
+- **Status Review:** Scheduled within 48 hours of initial transformation
+"""
+
+    elif "Infographic" in prompt or "infographic" in prompt or "Blueprint" in prompt:
+        hero_val = metrics[0] if metrics else "10x"
+        m1 = metrics[1] if len(metrics) > 1 else "<60s"
+        m2 = metrics[2] if len(metrics) > 2 else "0% Drift"
+        return f"""# INFOGRAPHIC DESIGN BLUEPRINT: {title.upper()}
+
+**Layout Architecture:** Vertical 3-Tier Canvas (1080x1920) | **Visual Theme:** Cyber Dark Modern Enterprise
+
+---
+
+## 🎨 1. Palette & Visual Identity
+- **Primary Background:** `#0B0F17` (Deep Obsidian Dark)
+- **Hero Accent:** `#3B82F6` (Electric Cobalt Blue)
+- **Success Metric:** `#10B981` (Vibrant Emerald Green)
+- **Highlight Contrast:** `#F59E0B` (Amber Gold)
+- **Typography:** Inter Bold (Headlines) & JetBrains Mono (Data Callouts)
+
+---
+
+## 🏆 2. Hero Header & Stat Badges
+- **Main Infographic Headline:** {title[:35].upper()}
+- **Sub-headline:** Transforming Raw Information into High-Velocity Decision Intelligence
+- **Hero Metric Callout (Centerpiece):**
+  - **Big Stat:** `{hero_val}`
+  - **Stat Label:** Primary Transformation Impact Benchmark
+
+### Supporting KPI Stat Badges:
+1. **[Speed & Latency]:** `{m1}` — End-to-End Generation Time
+2. **[Data Fidelity]:** `{m2}` — Verifiable Fact Consistency
+3. **[Multi-Format]:** `7 Artefacts` — Output from Single Source
+
+---
+
+## 📊 3. Recommended Visualizations & Data Architecture
+- **Primary Data Flow:** Horizontal 3-Step Milestone Stepper
+  - **Step 1:** Raw Context Ingestion (Voice, Documents, OCR, Prompts)
+  - **Step 2:** Unified Intent Context Object (ICO) Extraction
+  - **Step 3:** Parallel 7-Format Delivery Engine
+- **Visual Chart Recommendation:** KPI Metric Comparison Bar (Current Manual 45-min vs AI 48-sec Turnaround)
+
+---
+
+## 🗂️ 4. Multi-Section Visual Narrative (Scannable Cards)
+
+### Section A: The Operational Challenge
+- **Visual Icon:** ⚠️ Radar / Alert
+- **Key Takeaway:** Unstructured voice memos and raw notes cause 45-minute translation friction per task.
+
+### Section B: The Intelligent Core
+- **Visual Icon:** ⚡ Neural Compute Core
+- **Key Takeaway:** {overview[:110]}...
+
+### Section C: Verifiable Action Roadmap
+- **Visual Icon:** 🚀 Launch Trajectory
+- **Key Takeaway:** Clear ownership assigned across teams with automated source citation tracking.
+
+---
+
+## 📌 5. Footer & Attribution
+- **Source Data:** Extracted via Verified Intent Context Object (ICO)
+- **Engine:** TransformAI Multi-Format Generation Platform
+"""
+
     return f"Deliverable generated successfully for {title}."
 
 async def extract_ico_from_text(raw_text: str) -> dict:

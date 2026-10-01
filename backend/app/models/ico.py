@@ -130,9 +130,13 @@ class IntentContextObject(BaseModel):
 
 class TransformRequest(BaseModel):
     raw_text: str
-    formats: List[str] = ["executive_summary", "presentation", "linkedin", "twitter"]
+    formats: List[str] = ["executive_summary", "presentation", "linkedin", "twitter", "video_package", "advisory", "infographic"]
     tone: str = "professional"
     audience: str = "executive"
+    language: str = "English"
+    level_of_detail: str = "standard"  # "brief", "standard", "deep_dive"
+    objective: str = "inform"          # "inform", "action_alert", "persuade", "compliance", "educational"
+    content_style: str = "bulleted"    # "bulleted", "narrative", "analytical", "formal"
 
 class TransformResponse(BaseModel):
     id: Optional[str] = None
@@ -151,6 +155,10 @@ class SaveHistoryRequest(BaseModel):
     source_text: Optional[str] = ""
     tone: Optional[str] = "professional"
     audience: Optional[str] = "executive"
+    language: Optional[str] = "English"
+    level_of_detail: Optional[str] = "standard"
+    objective: Optional[str] = "inform"
+    content_style: Optional[str] = "bulleted"
     ico: Dict[str, Any] = {}
     outputs: Dict[str, Any] = {}
     pptx_url: Optional[str] = None
@@ -166,3 +174,8 @@ class RegenerateFormatRequest(BaseModel):
     format_type: str
     tone: Optional[str] = "professional"
     audience: Optional[str] = "executive"
+    language: Optional[str] = "English"
+    level_of_detail: Optional[str] = "standard"
+    objective: Optional[str] = "inform"
+    content_style: Optional[str] = "bulleted"
+

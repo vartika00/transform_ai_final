@@ -1,96 +1,84 @@
 # TransformAI
 
-> **"One voice memo → four finished deliverables. No typing, no ChatGPT prompts, no manual formatting."**
+> **"One source memo or report → seven finished deliverables. Zero manual prompt engineering, zero prompt drift."**
 
-Designed for the **iQOO Hackathon Productivity Track**. TransformAI captures chaotic unstructured inputs (voice memos, whiteboard photos, rough notes) and synthesizes them into four polished, multi-format professional deliverables in under 60 seconds.
+TransformAI is an enterprise-grade, multi-artefact content transformation platform. It ingests diverse unstructured inputs (voice memos, whiteboard photos, research reports, threat intelligence, and policy documents) and synthesizes them into **seven polished, purpose-built deliverables in under 60 seconds**.
 
 ---
 
 ## ⚡ The Honest Split Architecture
 
-TransformAI splits hardware duties cleanly between edge client capture and headless local compute:
+TransformAI cleanly splits responsibilities between edge client capture and headless local compute:
 
 ```text
-[ iQOO Phone (Browser / PWA) ]
-  ├── Voice Input → Web Speech API (On-Device STT)
-  ├── Camera Input → Tesseract.js WASM (On-Device OCR)
-  └── Text Normalizer → JavaScript
-           │
-           ▼ HTTP POST (Local Wi-Fi)
-[ Laptop (Headless Compute Engine) ]
-  ├── FastAPI (Async REST Server, port 8000)
-  ├── Ollama LLM Engine (Llama-3.2-3B / Qwen-2.5-7B) → Extracts ICO JSON
-  ├── Parallel Generator → 4 Format Prompts
-  └── Template Exporters → python-pptx (.pptx) & python-docx (.docx)
+[ Edge Client Layer (Browser / Mobile PWA) ]
+  ├── Voice Input ────────► Web Speech API (On-Device STT, 0ms Latency)
+  ├── Whiteboard Camera ──► Tesseract.js WASM + Edge EXIF Preprocessing
+  ├── Document Parser ────► Instant Ingestion (PDF / DOCX / TXT / MD)
+  └── Dashboard Controls ─► 7 Deliverables + 6 Operator Controls
+                                 │
+                                 ▼ HTTP POST (Local Wi-Fi / Private LAN)
+[ Headless Compute Engine (FastAPI Layer) ]
+  ├── Intent Context Object ───► Structured Extraction Engine (Pydantic Schema)
+  ├── AI Inference Core ───────► NVIDIA NIM (meta/llama-3.2-11b-vision-instruct)
+  ├── Fallback Cascade ────────► RapidAPI / OpenAI / Local Ollama (llama3.2:3b)
+  ├── Parallel 7-Generator ────► Async Parallel Synthesis (asyncio.gather)
+  └── Native Exporters ────────► python-pptx (.pptx), python-docx (.docx), WebVTT (.vtt)
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Launch Backend Compute Engine (Laptop Layer)
+### 1. Launch Backend Compute Engine
 ```bash
 cd backend
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 python run.py
 ```
-*Backend runs on `http://127.0.0.1:8000` with Swagger UI at `/docs`.*
+*Backend runs on `http://127.0.0.1:8000` with interactive Swagger UI at `/docs`.*
 
-### 2. Launch Frontend PWA (iQOO Phone Layer)
+### 2. Launch Frontend PWA
 ```bash
 cd frontend
 npm install
-npm run dev
-```
-*Or from the root folder:*
-```bash
 npm run dev
 ```
 *Frontend runs on `http://localhost:3000`.*
 
 ---
 
-## 📱 App Screens (All 4 Screens Implemented)
+## 🎯 The 7 Deliverable Artefacts
 
-1. **Screen 1: Home Screen (`/`)**:
-   - Tagline: *"Capture Raw. Deliver Polished."*
-   - Primary `+ NEW TRANSFORMATION` trigger.
-   - 3 Quick-start shortcuts: Voice, Scan OCR, Type/Paste.
-   - 1-Click Demo Benchmarks for instant pitch testing.
-   - Persisted Recent Transformations list.
-
-2. **Screen 2: Capture + Configure (`/capture`)**:
-   - Mode switcher: Voice (Web Speech API + visualizer), Camera (Tesseract.js WASM), Text.
-   - Live telemetry preview window.
-   - 4 Format Checkboxes + Tone & Audience dropdowns.
-   - Prominent `TRANSFORM` button.
-
-3. **Screen 3: Studio Results (`/studio`)**:
-   - Tabbed deliverables: Executive Summary, Slides Preview, LinkedIn Post, Twitter Thread, ICO JSON Inspector.
-   - Interactive source citations `[1]`, `[2]` linking back to source input sentences.
-   - Section regeneration buttons.
-   - Action Bar: Copy (with iQOO Office Kit synced toast), Share, `.PPTX` and `.DOCX` downloads.
-
-4. **Screen 4: Slide Detail View (`/slides`)**:
-   - 16:9 widescreen slide carousel with arrow navigation.
-   - Speaker script notes box per slide.
-   - Dedicated `.pptx` download and individual slide refine triggers.
+| Deliverable Artefact | Description | Primary Format |
+|---|---|---|
+| **1. Executive Summary** | Concise briefing, verified source citations, and 4-tier action matrix | Word (`.docx`) & Native PDF |
+| **2. Presentation Deck** | 4-6 slide 16:9 widescreen deck with bullet hierarchy and speaker notes | PowerPoint (`.pptx`) |
+| **3. Complete Video Package** | Scene-by-scene storyboard, camera cues, teleprompter script & subtitles | Subtitles (`.vtt` / `.srt`) |
+| **4. Structured Advisory** | Formal threat/incident/policy advisory with severity and mitigation matrix | Enterprise Markdown & Word |
+| **5. Infographic Blueprint** | Visual layout wireframe, stat badges, icon mappings & color palette | Visual Design Spec |
+| **6. LinkedIn Post** | Professional thought leadership post with hook, emojis, and hashtags | One-Click Sync |
+| **7. Twitter / X Thread** | 3-5 numbered tweets strictly capped under 280 characters each | Numbered Tweet Cards |
 
 ---
 
-## 🎯 12 Core Features Matrix
+## ⚙️ Configurable Operator Controls
 
-| ID | Feature | Execution Node | Status |
-|---|---|---|---|
-| **F1** | Voice capture → on-device transcription via Web Speech API | Phone (Edge) | ✅ Implemented |
-| **F2** | Camera capture → on-device OCR via Tesseract.js (WASM) | Phone (Edge) | ✅ Implemented |
-| **F3** | Text paste / direct keyboard entry | Phone (Edge) | ✅ Implemented |
-| **F4** | Format selector (4 checkboxes + tone/audience dropdowns) | Phone (Edge) | ✅ Implemented |
-| **F5** | ICO extraction via local LLM (structured JSON extraction) | Laptop (Headless) | ✅ Implemented |
-| **F6** | Parallel 4-format generation from ICO | Laptop (Headless) | ✅ Implemented |
-| **F7** | Tabbed Studio results view with source citations | Phone (Edge) | ✅ Implemented |
-| **F8** | Copy to clipboard (triggers iQOO Office Kit shared clipboard sync) | Bridge | ✅ Implemented |
-| **F9** | Export .pptx file (download on phone → drag via Office Kit) | Bridge | ✅ Implemented |
-| **F10**| Source citation markers linking output statements to input text | Laptop + UI | ✅ Implemented |
-| **F11**| Regenerate individual sections or slides | Laptop + UI | ✅ Implemented |
-| **F12**| Streaming token output / progressive rendering in Studio UI | UI | ✅ Implemented |
+Operators can fine-tune generation parameters directly from the dashboard:
+- **Target Audience**: C-Suite / Executive, Engineering Team, Investors & Board, Operational Ops, General Public.
+- **Tone Profile**: Professional, Direct & Urgent, Visionary & Inspiring, Deep Technical.
+- **Language**: English, Spanish, French, German, Hindi, Japanese, Mandarin.
+- **Level of Detail**: Concise Brief (TL;DR), Standard Balanced, Deep-Dive Comprehensive.
+- **Communication Objective**: Inform & Update, Incident Alert / Urgent Action, Persuade & Pitch, Regulatory Compliance, Educational.
+- **Content Style**: Bulleted Briefing, Narrative Storytelling, Data-Dense Analytical, Formal Regulatory.
+
+---
+
+## 📁 Evaluation & Submission Deliverables
+
+- **Source Code Repository**: [https://github.com/vartika00/transform_ai_final/tree/backend](https://github.com/vartika00/transform_ai_final/tree/backend)
+- **Architecture Document (Max 2 Pages)**: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- **Technical Presentation (Max 5 Slides)**: [`TransformAI_Technical_Presentation.pptx`](./TransformAI_Technical_Presentation.pptx) ([Markdown Transcript](./TECHNICAL_PRESENTATION.md))
+- **Demo Video Script (Max 2 Minutes)**: [`DEMO_VIDEO_SCRIPT.md`](./DEMO_VIDEO_SCRIPT.md)

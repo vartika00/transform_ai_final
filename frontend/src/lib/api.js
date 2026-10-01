@@ -28,7 +28,16 @@ export async function fetchSampleTemplates() {
   }
 }
 
-export async function transformContent({ raw_text, formats, tone = 'professional', audience = 'executive' }) {
+export async function transformContent({
+  raw_text,
+  formats,
+  tone = 'professional',
+  audience = 'executive',
+  language = 'English',
+  level_of_detail = 'standard',
+  objective = 'inform',
+  content_style = 'bulleted'
+}) {
   const res = await fetch(`${API_BASE}/api/transform`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -36,7 +45,11 @@ export async function transformContent({ raw_text, formats, tone = 'professional
       raw_text,
       formats,
       tone,
-      audience
+      audience,
+      language,
+      level_of_detail,
+      objective,
+      content_style
     })
   });
   
@@ -63,7 +76,16 @@ export async function regenerateSlideItem({ ico, slide_number, instructions }) {
   return await res.json();
 }
 
-export async function regenerateFormatItem({ ico, format_type, tone, audience }) {
+export async function regenerateFormatItem({
+  ico,
+  format_type,
+  tone,
+  audience,
+  language = 'English',
+  level_of_detail = 'standard',
+  objective = 'inform',
+  content_style = 'bulleted'
+}) {
   const res = await fetch(`${API_BASE}/api/regenerate-format`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -71,13 +93,35 @@ export async function regenerateFormatItem({ ico, format_type, tone, audience })
       ico,
       format_type,
       tone,
-      audience
+      audience,
+      language,
+      level_of_detail,
+      objective,
+      content_style
     })
   });
   
   if (!res.ok) throw new Error('Failed to regenerate format');
   return await res.json();
 }
+
+export async function uploadDocument(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/api/upload/document`, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({ detail: 'Failed to upload document' }));
+    throw new Error(errData.detail || 'Document upload failed');
+  }
+
+  return await res.json();
+}
+
 
 export async function uploadWhiteboardImage(fileOrBlob) {
   const controller = new AbortController();

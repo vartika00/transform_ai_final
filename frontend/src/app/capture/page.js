@@ -3,13 +3,13 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Mic, Camera, Keyboard, Sparkles, ArrowLeft, ArrowRight, Loader2, Trash2,
-  ShieldAlert, Check, Activity, Edit3, FileText
+  ShieldAlert, Check, Activity, Edit3, FileText, UploadCloud, FileCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import VoiceRecorder from '../../components/VoiceRecorder';
 import OCRScanner from '../../components/OCRScanner';
 import FormatSelector from '../../components/FormatSelector';
-import { transformContent } from '../../lib/api';
+import { transformContent, uploadDocument } from '../../lib/api';
 
 function CaptureContent() {
   const router = useRouter();
@@ -18,9 +18,15 @@ function CaptureContent() {
   const [step, setStep] = useState(1);
   const [inputMode, setInputMode] = useState('voice');
   const [rawText, setRawText] = useState('');
-  const [formats, setFormats] = useState(['executive_summary', 'presentation', 'linkedin', 'twitter']);
+  const [formats, setFormats] = useState(['executive_summary', 'presentation', 'video_package', 'advisory', 'infographic', 'linkedin', 'twitter']);
   const [tone, setTone] = useState('professional');
   const [audience, setAudience] = useState('executive');
+  const [language, setLanguage] = useState('English');
+  const [levelOfDetail, setLevelOfDetail] = useState('standard');
+  const [objective, setObjective] = useState('inform');
+  const [contentStyle, setContentStyle] = useState('bulleted');
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [uploadedDocName, setUploadedDocName] = useState('');
   const [isTransforming, setIsTransforming] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -83,7 +89,11 @@ function CaptureContent() {
         raw_text: rawText,
         formats,
         tone,
-        audience
+        audience,
+        language,
+        level_of_detail: levelOfDetail,
+        objective,
+        content_style: contentStyle
       });
 
       sessionStorage.setItem('transformai_active_result', JSON.stringify(result));
@@ -123,6 +133,12 @@ function CaptureContent() {
       label: 'Whiteboard OCR',
       detail: 'AI Vision Handwriting & Diagram Engine',
       icon: Camera,
+    },
+    {
+      id: 'document',
+      label: 'Document Ingestion',
+      detail: 'PDF, DOCX, TXT, Research & Incident Reports',
+      icon: FileText,
     },
     {
       id: 'text',
@@ -305,6 +321,90 @@ function CaptureContent() {
 
           {inputMode === 'camera' && (
             <OCRScanner onOCRComplete={(txt) => setRawText((prev) => (prev ? prev + '\n\n' + txt : txt))} />
+          )}
+
+          {inputMode === 'document' && (
+            <div className="bento-card" style={{ padding: '24px', textAlign: 'center' }}>
+              <input
+                type="file"
+                id="doc-file-upload"
+                accept=".pdf,.docx,.doc,.txt,.md,.json,.csv,.log"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setIsUploadingDoc(true);
+                  setErrorMsg('');
+                  try {
+                    const res = await uploadDocument(file);
+                    setRawText(res.text);
+                    setUploadedDocName(`${res.filename} (${res.word_count} words extracted)`);
+                  } catch (err) {
+                    setErrorMsg(err.message || 'Document upload failed');
+                  } finally {
+                    setIsUploadingDoc(false);
+                  }
+                }}
+              />
+
+              <label
+                htmlFor="doc-file-upload"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '30px 20px',
+                  borderRadius: 'var(--clay-radius-inner)',
+                  background: 'var(--clay-card-inset)',
+                  boxShadow: 'var(--clay-shadow-inset)',
+                  border: '2px dashed rgba(73, 80, 87, 0.25)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{
+                  width: '54px',
+                  height: '54px',
+                  borderRadius: '16px',
+                  background: 'var(--clay-primary)',
+                  color: '#ffffff',
+                  boxShadow: 'var(--clay-shadow-btn-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '14px'
+                }}>
+                  {isUploadingDoc ? <Loader2 size={24} className="spin" /> : <UploadCloud size={24} />}
+                </div>
+
+                <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--clay-primary-deep)', marginBottom: '4px' }}>
+                  {isUploadingDoc ? 'Parsing & Extracting Text...' : 'Click to Upload Report / Policy / Paper'}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--clay-primary-muted)', fontWeight: '500' }}>
+                  Supports PDF (.pdf), Word (.docx), Markdown (.md), and Text (.txt)
+                </div>
+
+                {uploadedDocName && (
+                  <div style={{
+                    marginTop: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'var(--clay-accent-green-bg)',
+                    color: 'var(--clay-accent-green)',
+                    border: '1px solid rgba(43, 138, 62, 0.3)',
+                    padding: '4px 12px',
+                    borderRadius: 'var(--clay-radius-pill)',
+                    fontSize: '11.5px',
+                    fontWeight: '800'
+                  }}>
+                    <FileCheck size={14} />
+                    <span>{uploadedDocName}</span>
+                  </div>
+                )}
+              </label>
+            </div>
           )}
 
           {/* Raw Telemetry & Recessed Note Well */}
@@ -524,6 +624,14 @@ function CaptureContent() {
               onChangeTone={setTone}
               audience={audience}
               onChangeAudience={setAudience}
+              language={language}
+              onChangeLanguage={setLanguage}
+              levelOfDetail={levelOfDetail}
+              onChangeLevelOfDetail={setLevelOfDetail}
+              objective={objective}
+              onChangeObjective={setObjective}
+              contentStyle={contentStyle}
+              onChangeContentStyle={setContentStyle}
             />
           </div>
 

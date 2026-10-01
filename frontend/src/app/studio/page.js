@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   FileText, Presentation, Linkedin, Twitter, Code2, ArrowLeft,
   Download, Copy, Share2, Sparkles, RefreshCw, Layers, ExternalLink,
-  ShieldCheck, Eye, MonitorPlay, Zap
+  ShieldCheck, Eye, MonitorPlay, Zap, Video, ShieldAlert, BarChart3, Film
 } from 'lucide-react';
 import ExportBar from '../../components/ExportBar';
 import CitationModal from '../../components/CitationModal';
@@ -377,6 +377,39 @@ Built for speed. Powered by edge compute.
           </button>
         )}
 
+        {outputs.video_package && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('video_package')}
+            className={`tab-btn ${activeTab === 'video_package' ? 'active' : ''}`}
+          >
+            <Video size={15} />
+            <span>Video Package</span>
+          </button>
+        )}
+
+        {outputs.advisory && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('advisory')}
+            className={`tab-btn ${activeTab === 'advisory' ? 'active' : ''}`}
+          >
+            <ShieldAlert size={15} />
+            <span>Structured Advisory</span>
+          </button>
+        )}
+
+        {outputs.infographic && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('infographic')}
+            className={`tab-btn ${activeTab === 'infographic' ? 'active' : ''}`}
+          >
+            <BarChart3 size={15} />
+            <span>Infographic Spec</span>
+          </button>
+        )}
+
         {outputs.linkedin && (
           <button
             type="button"
@@ -502,6 +535,133 @@ Built for speed. Powered by edge compute.
             border: '1px solid rgba(255, 255, 255, 0.6)'
           }}>
             {renderTextWithCitations(outputs.linkedin)}
+          </div>
+        </div>
+      )}
+
+      {/* Video Package Tab */}
+      {activeTab === 'video_package' && (
+        <div className="bento-card prose">
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '18px',
+            borderBottom: '1px solid rgba(73, 80, 87, 0.08)',
+            paddingBottom: '12px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: '800', color: '#7048e8', fontFamily: 'var(--font-mono)' }}>
+                FORMAT: COMPLETE VIDEO PACKAGE (STORYBOARD + SCRIPT + SUBTITLES)
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  const vttContent = `WEBVTT - TransformAI Subtitles\n\n1\n00:00:01.000 --> 00:00:05.000\n${(ico?.primary_objective || 'TransformAI Video Package').slice(0, 70)}\n\n2\n00:00:05.500 --> 00:00:12.000\n${(ico?.executive_overview || 'Automated multi-format transformation').slice(0, 100)}`;
+                  const blob = new Blob([vttContent], { type: 'text/vtt' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'transformai_subtitles.vtt';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="btn btn-secondary btn-sm btn-pill"
+                style={{ fontSize: '11px', gap: '4px' }}
+              >
+                <Download size={12} />
+                <span>Export .VTT Subtitles</span>
+              </button>
+              <button
+                onClick={handleRegenerateCurrentFormat}
+                disabled={isRegenerating}
+                className="btn btn-secondary btn-sm btn-pill"
+              >
+                <RefreshCw size={12} className={isRegenerating ? 'animate-spin' : ''} />
+                <span>Regenerate</span>
+              </button>
+            </div>
+          </div>
+          <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {renderTextWithCitations(outputs.video_package)}
+          </div>
+        </div>
+      )}
+
+      {/* Structured Advisory Tab */}
+      {activeTab === 'advisory' && (
+        <div className="bento-card prose">
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '18px',
+            borderBottom: '1px solid rgba(73, 80, 87, 0.08)',
+            paddingBottom: '12px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: '800', color: '#e03131', fontFamily: 'var(--font-mono)' }}>
+                FORMAT: STRUCTURED ADVISORY & REMEDIATION MATRIX
+              </span>
+              <span style={{
+                fontSize: '10px',
+                fontWeight: '900',
+                background: '#fff5f5',
+                color: '#e03131',
+                border: '1px solid rgba(224, 49, 49, 0.3)',
+                padding: '2px 8px',
+                borderRadius: '6px'
+              }}>
+                ENTERPRISE GRADE
+              </span>
+            </div>
+            <button
+              onClick={handleRegenerateCurrentFormat}
+              disabled={isRegenerating}
+              className="btn btn-secondary btn-sm btn-pill"
+            >
+              <RefreshCw size={12} className={isRegenerating ? 'animate-spin' : ''} />
+              <span>Regenerate</span>
+            </button>
+          </div>
+          <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {renderTextWithCitations(outputs.advisory)}
+          </div>
+        </div>
+      )}
+
+      {/* Infographic Blueprint Tab */}
+      {activeTab === 'infographic' && (
+        <div className="bento-card prose">
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '18px',
+            borderBottom: '1px solid rgba(73, 80, 87, 0.08)',
+            paddingBottom: '12px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '12px', fontWeight: '800', color: '#2b8a3e', fontFamily: 'var(--font-mono)' }}>
+              FORMAT: INFOGRAPHIC BLUEPRINT & VISUAL DESIGN SPECIFICATION
+            </span>
+            <button
+              onClick={handleRegenerateCurrentFormat}
+              disabled={isRegenerating}
+              className="btn btn-secondary btn-sm btn-pill"
+            >
+              <RefreshCw size={12} className={isRegenerating ? 'animate-spin' : ''} />
+              <span>Regenerate</span>
+            </button>
+          </div>
+          <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {renderTextWithCitations(outputs.infographic)}
           </div>
         </div>
       )}
