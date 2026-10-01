@@ -3,13 +3,13 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Mic, Camera, Keyboard, Sparkles, ArrowLeft, ArrowRight, Loader2, Trash2,
-  ShieldAlert, Check, Activity, Edit3, FileText, UploadCloud, FileCheck
+  ShieldAlert, Check, Activity, Edit3, FileText, UploadCloud, FileCheck, Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import VoiceRecorder from '../../components/VoiceRecorder';
 import OCRScanner from '../../components/OCRScanner';
 import FormatSelector from '../../components/FormatSelector';
-import { transformContent, uploadDocument } from '../../lib/api';
+import { transformContent, uploadDocument, ingestUrl } from '../../lib/api';
 
 function CaptureContent() {
   const router = useRouter();
@@ -27,12 +27,14 @@ function CaptureContent() {
   const [contentStyle, setContentStyle] = useState('bulleted');
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
   const [uploadedDocName, setUploadedDocName] = useState('');
+  const [articleUrl, setArticleUrl] = useState('');
+  const [isFetchingUrl, setIsFetchingUrl] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     const initialMode = searchParams.get('mode');
-    if (initialMode && ['voice', 'camera', 'text'].includes(initialMode)) {
+    if (initialMode && ['voice', 'camera', 'document', 'url', 'text'].includes(initialMode)) {
       setInputMode(initialMode);
     }
 
@@ -139,6 +141,12 @@ function CaptureContent() {
       label: 'Document Ingestion',
       detail: 'PDF, DOCX, TXT, Research & Incident Reports',
       icon: FileText,
+    },
+    {
+      id: 'url',
+      label: 'Web Article / URL',
+      detail: 'News Articles, Advisories, Policy & Web Reports',
+      icon: Globe,
     },
     {
       id: 'text',
@@ -404,6 +412,86 @@ function CaptureContent() {
                   </div>
                 )}
               </label>
+            </div>
+          )}
+
+          {inputMode === 'url' && (
+            <div className="bento-card" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                <Globe size={18} style={{ color: 'var(--clay-primary)' }} />
+                <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--clay-primary-deep)' }}>
+                  Web Article & Advisory URL Ingestion
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <input
+                  type="url"
+                  placeholder="https://example.com/news-story-or-threat-report"
+                  value={articleUrl}
+                  onChange={(e) => setArticleUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      document.getElementById('fetch-url-btn')?.click();
+                    }
+                  }}
+                  style={{
+                    flex: '1 1 300px',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--clay-radius-inner)',
+                    border: '1px solid rgba(73, 80, 87, 0.2)',
+                    background: 'var(--clay-card-inset)',
+                    boxShadow: 'var(--clay-shadow-inset)',
+                    fontSize: '13px',
+                    color: 'var(--clay-primary-deep)',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  id="fetch-url-btn"
+                  type="button"
+                  disabled={isFetchingUrl || !articleUrl.trim()}
+                  onClick={async () => {
+                    try {
+                      setIsFetchingUrl(true);
+                      setErrorMsg('');
+                      const res = await ingestUrl(articleUrl.trim());
+                      setRawText(res.text);
+                      setUploadedDocName(`URL: ${res.title || res.url} (${res.word_count} words extracted)`);
+                    } catch (err) {
+                      setErrorMsg(err.message || 'Failed to fetch article from URL');
+                    } finally {
+                      setIsFetchingUrl(false);
+                    }
+                  }}
+                  className="btn btn-primary"
+                  style={{ gap: '8px', whiteSpace: 'nowrap' }}
+                >
+                  {isFetchingUrl ? <Loader2 size={16} className="spin" /> : <Globe size={16} />}
+                  <span>{isFetchingUrl ? 'Fetching...' : 'Ingest Article'}</span>
+                </button>
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'var(--clay-primary-muted)', marginTop: '8px' }}>
+                Enter any public news story, advisory, threat intelligence release, or research paper link to automatically extract full readable content.
+              </div>
+              {uploadedDocName && uploadedDocName.startsWith('URL:') && (
+                <div style={{
+                  marginTop: '12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'var(--clay-accent-green-bg)',
+                  color: 'var(--clay-accent-green)',
+                  border: '1px solid rgba(43, 138, 62, 0.3)',
+                  padding: '4px 12px',
+                  borderRadius: 'var(--clay-radius-pill)',
+                  fontSize: '11.5px',
+                  fontWeight: '800'
+                }}>
+                  <FileCheck size={14} />
+                  <span>{uploadedDocName}</span>
+                </div>
+              )}
             </div>
           )}
 

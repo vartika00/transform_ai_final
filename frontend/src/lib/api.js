@@ -152,3 +152,18 @@ export async function uploadWhiteboardImage(fileOrBlob) {
   }
 }
 
+export async function ingestUrl(url) {
+  const res = await fetch(`${API_BASE}/api/upload/url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to extract article from URL' }));
+    throw new Error(err.detail || 'Failed to extract article from URL');
+  }
+
+  return await res.json();
+}
+

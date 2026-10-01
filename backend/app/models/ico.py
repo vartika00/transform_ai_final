@@ -179,3 +179,6 @@ class RegenerateFormatRequest(BaseModel):
     objective: Optional[str] = "inform"
     content_style: Optional[str] = "bulleted"
 
+class UrlIngestRequest(BaseModel):
+    url: str
+

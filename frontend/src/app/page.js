@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Mic, Camera, Keyboard, Sparkles, Clock,
-  Presentation, ChevronRight, Zap, FileText
+  Presentation, ChevronRight, Zap, FileText, Globe
 } from 'lucide-react';
 import { MagneticDock } from '../components/ui/magnetic-dock';
 
@@ -133,6 +133,12 @@ export default function HomeScreen() {
                   label: 'Document Ingestion',
                   icon: <FileText size={24} color="var(--clay-primary-deep)" />,
                   onClick: () => router.push('/capture?mode=document')
+                },
+                {
+                  id: 'url',
+                  label: 'Web Article / URL',
+                  icon: <Globe size={24} color="var(--clay-primary-deep)" />,
+                  onClick: () => router.push('/capture?mode=url')
                 },
                 {
                   id: 'text',

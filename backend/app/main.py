@@ -15,11 +15,12 @@ from app.models.auth import UserCreate, UserResponse, Token
 from app.services.auth_service import get_password_hash, verify_password, create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 
+import httpx
 from app.config import GENERATED_DIR, HOST, PORT, OLLAMA_HOST, OLLAMA_MODEL, OPENAI_API_KEY, NVIDIA_API_KEY
 from app.models.ico import (
     TransformRequest, TransformResponse, IntentContextObject,
     RegenerateSlideRequest, RegenerateFormatRequest, SlideItem,
-    SaveHistoryRequest
+    SaveHistoryRequest, UrlIngestRequest
 )
 from app.services.llm_service import (
     extract_ico_from_text, generate_llm_response, clean_json_string,
@@ -466,6 +467,58 @@ async def upload_document(file: UploadFile = File(...)):
         "char_count": len(extracted_text),
         "word_count": len(extracted_text.split())
     }
+
+@app.post("/api/upload/url")
+async def ingest_url(req: UrlIngestRequest):
+    """
+    Article / Web URL Ingestion Endpoint:
+    Fetches article or advisory content from a public URL, parses readable text,
+    stripping nav/scripts/ads, and returns the extracted body for transformation.
+    """
+    url = req.url.strip()
+    if not url.startswith("http://") and not url.startswith("https://"):
+        raise HTTPException(status_code=400, detail="Invalid URL format. Please start with http:// or https://")
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers={
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }) as client:
+            resp = await client.get(url)
+            if resp.status_code != 200:
+                raise HTTPException(status_code=400, detail=f"Failed to fetch URL: HTTP {resp.status_code}")
+            
+            html = resp.text
+            import lxml.html
+            doc = lxml.html.fromstring(html)
+            title = ""
+            title_node = doc.find('.//title')
+            if title_node is not None and title_node.text:
+                title = title_node.text.strip()
+            
+            # Remove scripts, styles, navigations, footers, headers
+            for tag in doc.xpath('//script | //style | //nav | //footer | //header | //aside | //noscript'):
+                tag.drop_tree()
+            
+            paragraphs = [p.text_content().strip() for p in doc.xpath('//p | //article | //h1 | //h2 | //h3 | //li') if p.text_content().strip()]
+            extracted = "\n\n".join(paragraphs[:60])
+            if not extracted:
+                extracted = doc.text_content().strip()
+                extracted = " ".join(extracted.split())[:8000]
+
+            full_text = f"Title: {title}\n\nSource URL: {url}\n\n{extracted}" if title and not extracted.startswith(title) else extracted
+
+            return {
+                "success": True,
+                "url": url,
+                "title": title,
+                "text": full_text,
+                "char_count": len(full_text),
+                "word_count": len(full_text.split())
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to extract article content: {str(e)}")
 
 @app.post("/api/ocr/whiteboard")
 async def scan_whiteboard(file: UploadFile = File(...)):
