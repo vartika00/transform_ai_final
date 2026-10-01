@@ -5,17 +5,31 @@ from typing import Dict, Any, List
 from app.config import (
     OLLAMA_HOST, OLLAMA_MODEL,
     OPENAI_API_KEY, OPENAI_MODEL, LLM_PROVIDER,
-    RAPIDAPI_KEY, RAPIDAPI_HOST, RAPIDAPI_URL
+    RAPIDAPI_KEY, RAPIDAPI_HOST, RAPIDAPI_URL,
+    NVIDIA_API_KEY, NVIDIA_MODEL, NVIDIA_BASE_URL
 )
 from app.prompts.ico_extract import ICO_EXTRACTION_SYSTEM_PROMPT
 
 def clean_json_string(text: str) -> str:
-    """Removes markdown code blocks and trims whitespace."""
+    """Removes markdown code blocks and trims whitespace, extracting valid JSON substring."""
     text = text.strip()
     if "```json" in text:
         text = text.split("```json", 1)[1].split("```", 1)[0].strip()
     elif "```" in text:
         text = text.split("```", 1)[1].split("```", 1)[0].strip()
+
+    first_brace = text.find('{')
+    first_bracket = text.find('[')
+
+    if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
+        last_brace = text.rfind('}')
+        if last_brace != -1 and last_brace > first_brace:
+            text = text[first_brace:last_brace + 1].strip()
+    elif first_bracket != -1:
+        last_bracket = text.rfind(']')
+        if last_bracket != -1 and last_bracket > first_bracket:
+            text = text[first_bracket:last_bracket + 1].strip()
+
     return text
 
 async def check_ollama_available() -> bool:
@@ -29,11 +43,20 @@ async def check_ollama_available() -> bool:
 async def check_active_llm_status() -> Dict[str, Any]:
     """
     Determines which LLM provider is active:
+    - NVIDIA NIM (if NVIDIA_API_KEY is configured and provider in ['auto', 'nvidia'])
     - RapidAPI Cloud (if RAPIDAPI_KEY is configured and provider in ['auto', 'rapidapi'])
     - OpenAI Cloud (if OPENAI_API_KEY is configured and provider in ['auto', 'openai'])
     - Local Ollama (if Ollama is responsive and provider in ['auto', 'ollama'])
     - Heuristic Fallback (if offline or unconfigured)
     """
+    if NVIDIA_API_KEY and LLM_PROVIDER in ["auto", "nvidia"]:
+        return {
+            "provider": "nvidia",
+            "model": NVIDIA_MODEL,
+            "ready": True,
+            "mode": f"NVIDIA NIM ({NVIDIA_MODEL})"
+        }
+
     if RAPIDAPI_KEY and LLM_PROVIDER in ["auto", "rapidapi"]:
         return {
             "provider": "rapidapi",
@@ -65,6 +88,29 @@ async def check_active_llm_status() -> Dict[str, Any]:
         "ready": False,
         "mode": "High-Fidelity Heuristic Fallback"
     }
+
+async def _generate_nvidia_response(prompt: str, system_prompt: str = "") -> str:
+    url = f"{NVIDIA_BASE_URL}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
+    payload = {
+        "model": NVIDIA_MODEL,
+        "messages": messages,
+        "temperature": 0.2,
+        "max_tokens": 2500
+    }
+    async with httpx.AsyncClient(timeout=45.0) as client:
+        response = await client.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
 
 async def _generate_openai_response(prompt: str, system_prompt: str = "") -> str:
     url = "https://api.openai.com/v1/chat/completions"
@@ -132,12 +178,20 @@ async def _generate_rapidapi_response(prompt: str, system_prompt: str = "") -> s
 async def generate_llm_response(prompt: str, system_prompt: str = "") -> str:
     """
     Unified LLM response generator with automatic fallback cascade:
-    1. RapidAPI Llama (if configured)
-    2. OpenAI (if configured)
-    3. Local Ollama (if available)
-    4. Heuristic generation
+    1. NVIDIA NIM (if configured)
+    2. RapidAPI Llama (if configured)
+    3. OpenAI (if configured)
+    4. Local Ollama (if available)
+    5. Heuristic generation
     """
-    # 1. Try RapidAPI if configured
+    # 1. Try NVIDIA NIM if configured
+    if NVIDIA_API_KEY and LLM_PROVIDER in ["auto", "nvidia"]:
+        try:
+            return await _generate_nvidia_response(prompt, system_prompt)
+        except Exception as e:
+            print(f"[NVIDIA NIM Call Error]: {e}. Falling back to next provider.")
+
+    # 2. Try RapidAPI if configured
     if RAPIDAPI_KEY and LLM_PROVIDER in ["auto", "rapidapi"]:
         try:
             return await _generate_rapidapi_response(prompt, system_prompt)

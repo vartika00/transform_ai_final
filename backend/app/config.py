@@ -8,6 +8,12 @@ load_dotenv(env_path, override=True)
 # LLM Provider Configuration: "rapidapi", "openai", "ollama", or "auto"
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "rapidapi").lower()
 
+# NVIDIA NIM Cloud Settings
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "").strip()
+NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct").strip()
+NVIDIA_VISION_MODEL = os.getenv("NVIDIA_VISION_MODEL", "meta/llama-3.2-11b-vision-instruct").strip()
+NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1").strip()
+
 # RapidAPI Cloud Settings
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY", "").strip()
 RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST", "open-ai21.p.rapidapi.com").strip()

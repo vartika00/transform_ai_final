@@ -11,7 +11,10 @@ from app.config import (
     GEMINI_API_KEY,
     OLLAMA_HOST,
     OLLAMA_VISION_MODEL,
-    LLM_PROVIDER
+    LLM_PROVIDER,
+    NVIDIA_API_KEY,
+    NVIDIA_VISION_MODEL,
+    NVIDIA_BASE_URL
 )
 
 WHITEBOARD_SYSTEM_PROMPT = """You are an expert AI vision system specialized in reading whiteboards, diagrams, handwritten meeting notes, and sticky notes.
@@ -57,6 +60,46 @@ def preprocess_and_encode_image(image_bytes: bytes, max_dimension: int = 1600, q
     buffer = io.BytesIO()
     image.save(buffer, format="JPEG", quality=quality, optimize=True)
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+async def _ocr_with_nvidia(base64_image: str) -> str:
+    """Perform whiteboard OCR using NVIDIA NIM Multimodal Vision (meta/llama-3.2-11b-vision-instruct)."""
+    url = f"{NVIDIA_BASE_URL}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": NVIDIA_VISION_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": WHITEBOARD_SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Transcribe this whiteboard image into structured Markdown:"
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        "max_tokens": 2000,
+        "temperature": 0.2
+    }
+
+    async with httpx.AsyncClient(timeout=45.0) as client:
+        response = await client.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
 
 async def _ocr_with_openai(base64_image: str) -> str:
     """Perform whiteboard OCR using OpenAI Multimodal Vision (gpt-4o-mini)."""
@@ -166,7 +209,21 @@ async def extract_whiteboard_text(image_bytes: bytes) -> Dict[str, Any]:
     except Exception as img_err:
         raise ValueError(f"Invalid image format or corrupted file: {str(img_err)}")
 
-    # 1. Try OpenAI Vision (if key configured)
+    # 1. Try NVIDIA NIM Vision (if key configured)
+    if NVIDIA_API_KEY:
+        try:
+            text = await _ocr_with_nvidia(base64_image)
+            if text:
+                return {
+                    "success": True,
+                    "text": text,
+                    "provider": "nvidia_nim_vision",
+                    "model": NVIDIA_VISION_MODEL
+                }
+        except Exception as e:
+            print(f"[OCR] NVIDIA NIM Vision attempt failed: {e}")
+
+    # 2. Try OpenAI Vision (if key configured)
     if OPENAI_API_KEY:
         try:
             text = await _ocr_with_openai(base64_image)

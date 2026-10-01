@@ -15,7 +15,7 @@ from app.models.auth import UserCreate, UserResponse, Token
 from app.services.auth_service import get_password_hash, verify_password, create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 
-from app.config import GENERATED_DIR, HOST, PORT, OLLAMA_HOST, OLLAMA_MODEL, OPENAI_API_KEY
+from app.config import GENERATED_DIR, HOST, PORT, OLLAMA_HOST, OLLAMA_MODEL, OPENAI_API_KEY, NVIDIA_API_KEY
 from app.models.ico import (
     TransformRequest, TransformResponse, IntentContextObject,
     RegenerateSlideRequest, RegenerateFormatRequest, SlideItem,
@@ -140,6 +140,7 @@ async def health_check():
         "provider": llm_info["provider"],
         "active_model": llm_info["model"],
         "mode": llm_info["mode"],
+        "nvidia_configured": bool(NVIDIA_API_KEY),
         "ollama_connected": await check_ollama_available(),
         "openai_configured": bool(OPENAI_API_KEY)
     }
