@@ -126,7 +126,18 @@ Leadership review scheduled for next Tuesday with VP of Product."""
 # CACHE_SLIDES: Dict[str, Any] = {}
 # CACHE_ICO: Dict[str, Any] = {}
 
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "engine": "TransformAI Headless Compute Engine",
+        "version": "2.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.post("/auth/register", response_model=UserResponse)
+@app.post("/api/auth/register", response_model=UserResponse)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if db_user:
@@ -139,6 +150,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 @app.post("/auth/login", response_model=Token)
+@app.post("/api/auth/login", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -477,15 +489,23 @@ async def ingest_url(req: UrlIngestRequest):
     stripping nav/scripts/ads, and returns the extracted body for transformation.
     """
     url = req.url.strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="Please enter a URL to ingest.")
+    
+    # Auto-prepend https:// if omitted by user
     if not url.startswith("http://") and not url.startswith("https://"):
-        raise HTTPException(status_code=400, detail="Invalid URL format. Please start with http:// or https://")
+        url = "https://" + url
     
     try:
-        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers={
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        async with httpx.AsyncClient(timeout=20.0, follow_redirects=True, headers={
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9"
         }) as client:
             resp = await client.get(url)
-            if resp.status_code != 200:
+            if resp.status_code in [401, 403]:
+                raise HTTPException(status_code=400, detail=f"Access denied by website (HTTP {resp.status_code}). This site blocks automated readers.")
+            elif resp.status_code != 200:
                 raise HTTPException(status_code=400, detail=f"Failed to fetch URL: HTTP {resp.status_code}")
             
             html = resp.text
