@@ -216,7 +216,7 @@ async def transform_raw_text(
         tasks = {}
         ctrl_instructions = f"\nOutput Language: {req.language}. Tone: {req.tone}. Target Audience: {req.audience}. Detail Level: {req.level_of_detail}. Communication Objective: {req.objective}. Content Style: {req.content_style}."
 
-        if "executive_summary" in req.formats:
+        if "executive_summary" in req.formats or "exec_summary" in req.formats:
             tasks["executive_summary"] = generate_llm_response(
                 EXEC_SUMMARY_PROMPT.replace("{ico_json}", ico_str) + ctrl_instructions
             )
