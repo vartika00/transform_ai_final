@@ -525,20 +525,17 @@ function CaptureContent() {
                 <button
                   type="button"
                   onClick={() => setRawText('')}
+                  className="button button-secondary button-sm"
                   style={{
                     background: 'var(--clay-accent-coral-bg)',
                     border: '1px solid rgba(201, 42, 42, 0.2)',
-                    boxShadow: '2px 4px 10px rgba(201, 42, 42, 0.12), inset 1px 1px 2px rgba(255, 255, 255, 0.8)',
-                    borderRadius: 'var(--clay-radius-pill)',
                     color: 'var(--clay-accent-coral)',
                     fontSize: '11px',
                     fontWeight: '800',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    padding: '4px 10px',
-                    transition: 'all 0.15s ease'
+                    padding: '4px 10px'
                   }}
                 >
                   <Trash2 size={12} />
@@ -612,7 +609,7 @@ function CaptureContent() {
           <button
             type="button"
             onClick={handleProceedToStep2}
-            className="btn btn-primary"
+            className="button button-primary"
             style={{
               width: '100%',
               padding: '18px 24px',
@@ -748,7 +745,7 @@ function CaptureContent() {
             <button
               type="button"
               onClick={handleBackToStep1}
-              className="btn btn-secondary"
+              className="button button-secondary"
               style={{
                 padding: '18px 22px',
                 fontSize: '14px',
@@ -765,7 +762,7 @@ function CaptureContent() {
               type="button"
               onClick={handleTransform}
               disabled={isTransforming}
-              className="btn btn-primary"
+              className="button button-primary"
               style={{
                 flex: 1,
                 padding: '18px 24px',

@@ -35,6 +35,7 @@ from app.services.db_service import (
 import io
 from app.services.pdf_service import create_executive_pdf
 from app.services.ocr_service import extract_whiteboard_text
+from app.services.asr_service import transcribe_audio
 from app.prompts.exec_summary import EXEC_SUMMARY_PROMPT
 from app.prompts.presentation import PRESENTATION_PROMPT
 from app.prompts.linkedin import LINKEDIN_PROMPT
@@ -555,6 +556,15 @@ async def scan_whiteboard(file: UploadFile = File(...)):
     except Exception as e:
         print(f"[Whiteboard OCR Error]: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to transcribe whiteboard: {str(e)}")
+
+@app.post("/api/asr/transcribe")
+async def transcribe_audio_endpoint(file: UploadFile = File(...)):
+    """Transcribe audio using NVIDIA NeMo ASR via NIM microservice."""
+    contents = await file.read()
+    if not contents or len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded audio file is empty.")
+    result = await transcribe_audio(contents)
+    return result
 
 @app.get("/api/download/pptx")
 def download_pptx(file: str = "transformai_presentation.pptx"):

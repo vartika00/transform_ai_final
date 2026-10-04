@@ -119,8 +119,7 @@ export default function HomeScreen() {
                   id: 'voice',
                   label: 'Voice Memo',
                   icon: <Mic size={24} color="var(--clay-primary-deep)" />,
-                  onClick: () => router.push('/capture?mode=voice'),
-                  badge: 1
+                  onClick: () => router.push('/capture?mode=voice')
                 },
                 {
                   id: 'camera',

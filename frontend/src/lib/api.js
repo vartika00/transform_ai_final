@@ -167,3 +167,20 @@ export async function ingestUrl(url) {
   return await res.json();
 }
 
+export async function transcribeAudioFile(fileOrBlob) {
+  const formData = new FormData();
+  formData.append('file', fileOrBlob);
+
+  const res = await fetch(`${API_BASE}/api/asr/transcribe`, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({ detail: 'Failed to transcribe audio' }));
+    throw new Error(errData.detail || 'Audio transcription failed');
+  }
+
+  return await res.json();
+}
+

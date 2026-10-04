@@ -1,0 +1,706 @@
+/* =========================================================
+   APPLE DESIGN SYSTEM - Fluid Interfaces for the Web
+   ========================================================= */
+
+/* Foundation - Apple's system colors adapted for web */
+:root {
+  /* Semi-transparent materials - Apple's approach to depth */
+  --material-window: rgba(255, 255, 255, 0.6);
+  --material-window-light: rgba(255, 255, 255, 0.7);
+  --material-window-dark: rgba(255, 255, 255, 0.5);
+  --material-menu: rgba(255, 255, 255, 0.8);
+  --material-popover: rgba(255, 255, 255, 0.85);
+  --material-sidebar: rgba(255, 255, 255, 0.75);
+
+  /* Elevated materials with blur */
+  --material-window-blur:
+    rgba(255, 255, 255, 0.6) blur(20px) saturate(180%);
+  --material-menu-blur:
+    rgba(255, 255, 255, 0.8) blur(20px) saturate(150%);
+
+  /* Separators - subtle dividers */
+  --separator: rgba(0, 0, 0, 0.15);
+  --separator-inset: rgba(255, 255, 255, 0.3);
+
+  /* Labels - hierarchical text colors */
+  --label-primary: rgba(0, 0, 0, 0.87);
+  --label-secondary: rgba(0, 0, 0, 0.6);
+  --label-tertiary: rgba(0, 0, 0, 0.38);
+  --label-placeholder: rgba(0, 0, 0, 0.25);
+
+  /* Interactive colors */
+  --link: var(--clay-primary-deep);
+  --link-active: rgba(33, 37, 41, 0.2);
+
+  /* System colors */
+  --system-red: #ff3b30;
+  --system-orange: #ff9500;
+  --system-yellow: #ffcc00;
+  --system-green: #34c759;
+  --system-teal: #5ac8fa;
+  --system-blue: var(--clay-primary-deep);
+  --system-purple: #af52de;
+  --system-pink: #ff2d55;
+
+  /* Gradients for subtle depth */
+  --gradient-header:
+    linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0.5) 100%);
+
+  /* Typography - Apple's system font with optical sizing */
+  --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'SFMono-Regular', Menlo,
+               Consolas, 'Liberation Mono', monospace;
+
+  /* Touch targets - Apple's minimum 44x44pt */
+  --touch-size: 44px;
+}
+
+/* Base reset with Apple-like defaults */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-system);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff;
+  color: var(--label-primary);
+  line-height: 1.5;
+}
+
+/* =========================================================
+   MATERIALS & DEPTH - Apple's translucent approach
+   ========================================================= */
+
+/* Translucent surfaces - the core of Apple's depth */
+.material-window {
+  background: var(--material-window);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.material-menu {
+  background: var(--material-menu);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.material-popover {
+  background: var(--material-popover);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.material-sidebar {
+  background: var(--material-sidebar);
+  backdrop-filter: blur(15px) saturate(110%);
+  -webkit-backdrop-filter: blur(15px) saturate(110%);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Elevated cards with subtle shadows */
+.card-elevated {
+  background: var(--material-window);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+}
+
+/* Hover states - subtle lift */
+.card-elevated:hover {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+  transition: all 0.12s ease;
+}
+
+/* Pressed state - immediate feedback */
+.card-elevated:active {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+/* =========================================================
+   BUTTONS - Apple's responsive controls
+   ========================================================= */
+
+/* Base button - responsive to touch */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px; /* Apple's minimum touch target */
+  min-width: 64px;
+  padding: 0 16px;
+  font-family: var(--font-system);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.33;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  color: var(--label-primary);
+  background-color: transparent;
+  transition: all 0.08s ease; /* Very fast for responsiveness */
+}
+
+/* Immediate feedback on press - Apple's response principle */
+.button:active {
+  transform: scale(0.97);
+  background-color: var(--link-active);
+}
+
+/* Primary button */
+.button-primary {
+  color: white;
+  background-color: var(--system-blue);
+}
+
+.button-primary:active {
+  background-color: var(--clay-primary-deep);
+  transform: scale(0.97);
+}
+
+/* Secondary button */
+.button-secondary {
+  color: var(--label-primary);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.button-secondary:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.button-secondary:active {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(0.97);
+}
+
+/* Tertiary button */
+.button-tertiary {
+  color: var(--label-tertiary);
+}
+
+.button-tertiary:hover {
+  color: var(--label-secondary);
+}
+
+.button-tertiary:active {
+  color: var(--label-primary);
+  transform: scale(0.97);
+}
+
+/* =========================================================
+   NAVIGATION - Apple's tab bars and sidebars
+   ========================================================= */
+
+/* Tab bar - iOS style */
+.tab-bar {
+  display: flex;
+  height: 56px;
+  border-top: 1px solid var(--separator);
+  background: var(--material-window);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  padding: 0 8px;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-bar-content {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.tab-bar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.tab-bar-label {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.2;
+  margin-top: 4px;
+  color: var(--label-tertiary);
+  transition: color 0.1s ease;
+}
+
+/* Tab bar item states */
+.tab-bar-icon:active {
+  transform: scale(0.95);
+}
+
+/* Active tab bar item */
+.tab-bar-label[data-active="true"] {
+  color: var(--system-blue);
+  font-weight: 600;
+}
+
+/* Sidebar - macOS style */
+.sidebar {
+  width: 240px;
+  border-right: 1px solid var(--separator-inset);
+  background: var(--material-sidebar);
+  backdrop-filter: blur(15px) saturate(110%);
+  -webkit-backdrop-filter: blur(15px) saturate(110%);
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  height: 36px;
+  border-radius: 6px;
+  color: var(--label-secondary);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.sidebar-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  color: var(--label-primary);
+}
+
+.sidebar-item:active {
+  background-color: rgba(0, 0, 0, 0.08);
+  color: var(--label-primary);
+}
+
+.sidebar-item.active {
+  background-color: rgba(33, 37, 41, 0.1);
+  color: var(--system-blue);
+  font-weight: 600;
+}
+
+/* =========================================================
+   INPUTS & CONTROLS - Apple's form elements
+   ========================================================= */
+
+/* Text input */
+.input {
+  height: 36px;
+  padding: 0 12px;
+  font-family: var(--font-system);
+  font-size: 15px;
+  line-height: 1.33;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  background-color: var(--material-window);
+  backdrop-filter: blur(10px) saturate(110%);
+  -webkit-backdrop-filter: blur(10px) saturate(110%);
+  color: var(--label-primary);
+  transition: all 0.1s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--system-blue);
+  box-shadow: 0 0 0 3px rgba(33, 37, 41, 0.2);
+}
+
+.input::placeholder {
+  color: var(--label-placeholder);
+}
+
+/* Textarea */
+.textarea {
+  padding: 12px;
+  font-family: var(--font-system);
+  font-size: 15px;
+  line-height: 1.5;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  background-color: var(--material-window);
+  backdrop-filter: blur(10px) saturate(110%);
+  -webkit-backdrop-filter: blur(10px) saturate(110%);
+  color: var(--label-primary);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--system-blue);
+  box-shadow: 0 0 0 3px rgba(33, 37, 41, 0.2);
+}
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  transition: 0.2s ease;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.2s ease;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-input:checked + .toggle-slider {
+  background-color: var(--system-green);
+}
+
+.toggle-input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-slider:active:before {
+  width: 26px;
+}
+
+/* =========================================================
+   TYPOGRAPHY - Apple's text rendering
+   ========================================================= */
+
+/* Headers - following Apple's hierarchy with optical sizing */
+.h1 {
+  font-family: var(--font-system);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.6px; /* Tighter tracking for very large text */
+  color: var(--label-primary);
+}
+
+.h2 {
+  font-family: var(--font-system);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  color: var(--label-primary);
+}
+
+.h3 {
+  font-family: var(--font-system);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -0.3px;
+  color: var(--label-primary);
+}
+
+.h4 {
+  font-family: var(--font-system);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+  color: var(--label-primary);
+}
+
+.h5 {
+  font-family: var(--font-system);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: -0.1px;
+  color: var(--label-primary);
+}
+
+/* Body text */
+.body-large {
+  font-family: var(--font-system);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: -0.05px; /* Slightly tight for readability */
+  color: var(--label-primary);
+}
+
+.body {
+  font-family: var(--font-system);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0px; /* Normal tracking for body text */
+  color: var(--label-primary);
+}
+
+.body-small {
+  font-family: var(--font-system);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.7;
+  letter-spacing: 0.03px; /* Slightly loose for small text legibility */
+  color: var(--label-secondary);
+}
+
+/* Captions and labels */
+.caption {
+  font-family: var(--font-system);
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.05px; /* Looser tracking for very small text */
+  color: var(--label-tertiary);
+}
+
+/* Text input styles - optimized for readability */
+.input {
+  font-family: var(--font-system);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0px;
+}
+
+.textarea {
+  font-family: var(--font-system);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0px;
+}
+
+/* Label styles */
+.label {
+  font-family: var(--font-system);
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.03px;
+  font-weight: 500;
+  color: var(--label-secondary);
+}
+
+/* Placeholder text */
+.input::placeholder,
+.textarea::placeholder {
+  letter-spacing: 0px;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   INTERACTION FEEDBACK - Apple's principles
+   ========================================================= */
+
+/* Ripple effect for touch feedback */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple:after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform .5s, opacity 1s;
+}
+
+.ripple:active:after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* Hover lift for cards and elevating elements */
+.hover-lift {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.hover-lift:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   REDUCED MOTION & ACCESSIBILITY
+   ====================================================== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hover-lift:hover {
+    transform: none !important;
+  }
+
+  .ripple:after {
+    display: none !important;
+  }
+}
+
+/* Respect reduced transparency */
+@media (prefers-reduced-transparency: reduce) {
+  .material-window,
+  .material-menu,
+  .material-popover,
+  .material-sidebar {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  :root {
+    --label-primary: #000;
+    --label-secondary: #333;
+    --label-tertiary: #666;
+    --separator: #000;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --material-window: rgba(0, 0, 0, 0.6);
+    --material-window-light: rgba(0, 0, 0, 0.7);
+    --material-window-dark: rgba(0, 0, 0, 0.5);
+    --material-menu: rgba(0, 0, 0, 0.8);
+    --material-popover: rgba(0, 0, 0, 0.85);
+    --material-sidebar: rgba(0, 0, 0, 0.75);
+
+    --label-primary: rgba(255, 255, 255, 0.87);
+    --label-secondary: rgba(255, 255, 255, 0.6);
+    --label-tertiary: rgba(255, 255, 255, 0.38);
+    --label-placeholder: rgba(255, 255, 255, 0.25);
+
+    --separator: rgba(255, 255, 255, 0.2);
+    --separator-inset: rgba(0, 0, 0, 0.3);
+
+    --system-blue: var(--clay-primary-deep);
+    --system-green: #30d158;
+    --system-red: #ff453a;
+    --system-yellow: #ffd60a;
+    --system-orange: #ff9f0a;
+    --system-teal: #64d2ff;
+    --system-purple: #bf5af2;
+    --system-pink: #ff375f;
+  }
+
+  body {
+    background-color: #000000;
+    color: var(--label-primary);
+  }
+}
+
+/* =========================================================
+   LAYOUT COMPONENTS - Adaptive layouts
+   ========================================================= */
+
+/* Flexible container */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Responsive grid */
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* Spacing utilities */
+.space-y-2 > * + * {
+  margin-top: 8px;
+}
+
+.space-y-4 > * + * {
+  margin-top: 16px;
+}
+
+.space-y-6 > * + * {
+  margin-top: 24px;
+}
+
+.space-x-2 > * + * {
+  margin-left: 8px;
+}
+
+.space-x-4 > * + * {
+  margin-left: 16px;
+}
+
+.space-x-6 > * + * {
+  margin-left: 24px;
+}

@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Mic, FileText, Presentation } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
@@ -14,8 +15,8 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav className="mobile-bottom-nav" aria-label="Mobile Navigation">
-      <div className="mobile-bottom-nav-inner">
+    <nav className="tab-bar" aria-label="Mobile Navigation">
+      <div className="tab-bar-content">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -23,12 +24,20 @@ export default function MobileBottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`mobile-nav-item ${isActive ? 'active' : ''}`}
             >
-              <div className="mobile-nav-icon-wrap">
-                <Icon size={19} />
-              </div>
-              <span className="mobile-nav-label">{item.label}</span>
+              <motion.div
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: isActive ? 1 : 0.6, scale: isActive ? 1 : 0.95 }}
+                animate={{ opacity: isActive ? 1 : 0.6, scale: isActive ? 1 : 0.95 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                <div className="tab-bar-icon">
+                  <Icon size={19} />
+                </div>
+                <span className="tab-bar-label" data-active={isActive.toString()}>
+                  {item.label}
+                </span>
+              </motion.div>
             </Link>
           );
         })}
